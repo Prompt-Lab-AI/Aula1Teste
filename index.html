@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prova ABNT - Técnico em Enfermagem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nursing: {
+                            primary: '#2563eb',
+                            secondary: '#06b6d4',
+                            accent: '#10b981',
+                            light: '#eff6ff',
+                            dark: '#1e3a8a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .question-container {
+            border-left: 4px solid #2563eb;
+            transition: all 0.3s ease;
+        }
+        .question-container:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+        .nursing-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e0f2fe' fill-opacity='0.1'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm0 0c0 11.046 8.954 20 20 20s20-8.954 20-20-8.954-20-20-20-20 8.954-20 20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .zoom-image {
+            cursor: zoom-in;
+            transition: transform 0.2s;
+        }
+        .zoom-image:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            margin-top: 5%;
+        }
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-nursing-light to-white nursing-pattern min-h-screen">
+    <!-- Modal para zoom de imagens -->
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- Tela 1: Inserir nomes dos participantes -->
+    <div id="nameScreen" class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg p-8 border-t-4 border-nursing-primary">
+                <div class="text-center mb-8">
+                    <div class="bg-nursing-primary text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl font-bold text-nursing-dark mb-2">Prova de Normas ABNT</h1>
+                    <p class="text-lg text-gray-600">Curso Técnico em Enfermagem</p>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label for="student1" class="block text-sm font-medium text-gray-700 mb-2">Nome do Primeiro Participante:</label>
+                        <input type="text" id="student1" class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-nursing-primary focus:border-transparent" placeholder="Digite o nome completo">
+                    </div>
+                    
+                    <div>
+                        <label for="student2" class="block text-sm font-medium text-gray-700 mb-2">Nome do Segundo Participante:</label>
+                        <input type="text" id="student2" class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-nursing-primary focus:border-transparent" placeholder="Digite o nome completo">
+                    </div>
+                    
+                    <button onclick="startExam()" class="w-full bg-nursing-primary hover:bg-nursing-dark text-white font-bold py-4 px-6 rounded-lg transition duration-300 transform hover:scale-105">
+                        Iniciar Prova
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela 2: Prova -->
+    <div id="examScreen" class="hidden container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-nursing-dark mb-2">Prova: Normas ABNT</h1>
+                    <p class="text-lg text-gray-600">Responda todas as questões abaixo</p>
+                    <div class="mt-4 bg-nursing-light p-4 rounded-lg">
+                        <p class="text-nursing-dark font-semibold">Participantes: <span id="examStudents"></span></p>
+                    </div>
+                </div>
+
+                <form id="examForm" class="space-y-8">
+                    <!-- Questão 1 -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">1. Verdadeiro ou Falso</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <input type="radio" name="q1a" value="false" id="q1a_f" class="mr-3">
+                                <label for="q1a_f">Falso</label>
+                                <input type="radio" name="q1a" value="true" id="q1a_t" class="ml-6 mr-3">
+                                <label for="q1a_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">O título de um trabalho acadêmico deve ser centralizado, em negrito e com fonte tamanho 12.</p>
+                            
+                            <div class="flex items-center">
+                                <input type="radio" name="q1b" value="false" id="q1b_f" class="mr-3">
+                                <label for="q1b_f">Falso</label>
+                                <input type="radio" name="q1b" value="true" id="q1b_t" class="ml-6 mr-3">
+                                <label for="q1b_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">O espaçamento entre as linhas no corpo do texto deve ser simples.</p>
+                            
+                            <div class="flex items-center">
+                                <input type="radio" name="q1c" value="false" id="q1c_f" class="mr-3">
+                                <label for="q1c_f">Falso</label>
+                                <input type="radio" name="q1c" value="true" id="q1c_t" class="ml-6 mr-3">
+                                <label for="q1c_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">As margens padrão da ABNT são: esquerda e superior com 3 cm, direita e inferior com 2 cm.</p>
+                            
+                            <div class="flex items-center">
+                                <input type="radio" name="q1d" value="false" id="q1d_f" class="mr-3">
+                                <label for="q1d_f">Falso</label>
+                                <input type="radio" name="q1d" value="true" id="q1d_t" class="ml-6 mr-3">
+                                <label for="q1d_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">O texto principal deve estar justificado.</p>
+                        </div>
+                    </div>
+
+                    <!-- Questão 2 -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">2. Múltipla Escolha</h3>
+                        <p class="mb-4">Qual das opções abaixo corresponde à estrutura básica de um trabalho acadêmico segundo a ABNT?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="q2" value="a" class="mr-3">
+                                a) Capa, Sumário, Conclusão, Bibliografia
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="q2" value="b" class="mr-3">
+                                b) Capa, Introdução, Desenvolvimento, Referências
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="q2" value="c" class="mr-3">
+                                c) Capa, Folha de Rosto, Introdução, Desenvolvimento, Conclusão, Referências
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="q2" value="d" class="mr-3">
+                                d) Capa, Referências, Título, Anexos
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Questão 3 -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">3. Complete as Lacunas</h3>
+                        <p class="mb-4">O espaçamento entre linhas recomendado pela ABNT é de <input type="text" name="q3a" class="mx-2 px-2 py-1 border rounded text-base" placeholder="resposta">. A fonte deve ser <input type="text" name="q3b" class="mx-2 px-2 py-1 border rounded text-base" placeholder="resposta"> e o tamanho <input type="text" name="q3c" class="mx-2 px-2 py-1 border rounded text-base" placeholder="resposta">.</p>
+                    </div>
+
+                    <!-- Questão 4 -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">4. Escolha a Opção Correta (múltiplas respostas)</h3>
+                        <p class="mb-4">Assinale as opções que fazem parte dos elementos pré-textuais:</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q4" value="a" class="mr-3">
+                                a) Introdução
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q4" value="b" class="mr-3">
+                                b) Resumo
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q4" value="c" class="mr-3">
+                                c) Capa
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q4" value="d" class="mr-3">
+                                d) Sumário
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q4" value="e" class="mr-3">
+                                e) Referências
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Questão 5 (antiga 6) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">5. Verdadeiro ou Falso</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <input type="radio" name="q5a" value="false" id="q5a_f" class="mr-3">
+                                <label for="q5a_f">Falso</label>
+                                <input type="radio" name="q5a" value="true" id="q5a_t" class="ml-6 mr-3">
+                                <label for="q5a_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">O sumário deve conter todos os títulos e subtítulos do trabalho, com suas respectivas páginas.</p>
+                            
+                            <div class="flex items-center">
+                                <input type="radio" name="q5b" value="false" id="q5b_f" class="mr-3">
+                                <label for="q5b_f">Falso</label>
+                                <input type="radio" name="q5b" value="true" id="q5b_t" class="ml-6 mr-3">
+                                <label for="q5b_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">A conclusão é considerada um elemento pré-textual.</p>
+                            
+                            <div class="flex items-center">
+                                <input type="radio" name="q5c" value="false" id="q5c_f" class="mr-3">
+                                <label for="q5c_f">Falso</label>
+                                <input type="radio" name="q5c" value="true" id="q5c_t" class="ml-6 mr-3">
+                                <label for="q5c_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">Citações diretas com mais de três linhas devem ser destacadas com recuo e fonte menor.</p>
+                        </div>
+                    </div>
+
+                    <!-- Questão 6 (antiga 7) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">6. Múltipla Escolha</h3>
+                        <p class="mb-4">Qual é o formato correto para as margens segundo a ABNT?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="q6" value="a" class="mr-3">
+                                a) Todas as margens com 2,5 cm
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="q6" value="b" class="mr-3">
+                                b) Direita e esquerda com 3 cm
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="q6" value="c" class="mr-3">
+                                c) Superior e esquerda com 3 cm; inferior e direita com 2 cm
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="q6" value="d" class="mr-3">
+                                d) Superior e direita com 3 cm; inferior e esquerda com 2 cm
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Questão 7 (antiga 8) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">7. Associação</h3>
+                        <p class="mb-4">Associe cada elemento ao seu tipo:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span>Introdução</span>
+                                        <select name="q7a" class="border rounded px-2 py-1">
+                                            <option value="">Selecione</option>
+                                            <option value="a">a) Elemento pré-textual</option>
+                                            <option value="b">b) Elemento textual</option>
+                                            <option value="c">c) Elemento pós-textual</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>Referências</span>
+                                        <select name="q7b" class="border rounded px-2 py-1">
+                                            <option value="">Selecione</option>
+                                            <option value="a">a) Elemento pré-textual</option>
+                                            <option value="b">b) Elemento textual</option>
+                                            <option value="c">c) Elemento pós-textual</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>Capa</span>
+                                        <select name="q7c" class="border rounded px-2 py-1">
+                                            <option value="">Selecione</option>
+                                            <option value="a">a) Elemento pré-textual</option>
+                                            <option value="b">b) Elemento textual</option>
+                                            <option value="c">c) Elemento pós-textual</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>Desenvolvimento</span>
+                                        <select name="q7d" class="border rounded px-2 py-1">
+                                            <option value="">Selecione</option>
+                                            <option value="a">a) Elemento pré-textual</option>
+                                            <option value="b">b) Elemento textual</option>
+                                            <option value="c">c) Elemento pós-textual</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>Anexos</span>
+                                        <select name="q7e" class="border rounded px-2 py-1">
+                                            <option value="">Selecione</option>
+                                            <option value="a">a) Elemento pré-textual</option>
+                                            <option value="b">b) Elemento textual</option>
+                                            <option value="c">c) Elemento pós-textual</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Questão 8 (antiga 9) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">8. Ordenação</h3>
+                        <p class="mb-4">Coloque os elementos a seguir na ordem correta de um trabalho acadêmico (digite os números de 1 a 6):</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <input type="number" name="q8a" min="1" max="6" class="w-16 px-2 py-1 border rounded mr-3 text-base">
+                                <span>Sumário</span>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="number" name="q8b" min="1" max="6" class="w-16 px-2 py-1 border rounded mr-3 text-base">
+                                <span>Desenvolvimento</span>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="number" name="q8c" min="1" max="6" class="w-16 px-2 py-1 border rounded mr-3 text-base">
+                                <span>Folha de Rosto</span>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="number" name="q8d" min="1" max="6" class="w-16 px-2 py-1 border rounded mr-3 text-base">
+                                <span>Capa</span>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="number" name="q8e" min="1" max="6" class="w-16 px-2 py-1 border rounded mr-3 text-base">
+                                <span>Referências</span>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="number" name="q8f" min="1" max="6" class="w-16 px-2 py-1 border rounded mr-3 text-base">
+                                <span>Introdução</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Questão 9 (antiga 10) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">9. Verdadeiro ou Falso</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <input type="radio" name="q9a" value="false" id="q9a_f" class="mr-3">
+                                <label for="q9a_f">Falso</label>
+                                <input type="radio" name="q9a" value="true" id="q9a_t" class="ml-6 mr-3">
+                                <label for="q9a_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">Um trabalho acadêmico deve ser todo escrito com parágrafos centralizados.</p>
+                            
+                            <div class="flex items-center">
+                                <input type="radio" name="q9b" value="false" id="q9b_f" class="mr-3">
+                                <label for="q9b_f">Falso</label>
+                                <input type="radio" name="q9b" value="true" id="q9b_t" class="ml-6 mr-3">
+                                <label for="q9b_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">As referências devem ser listadas em ordem alfabética ao final do trabalho.</p>
+                            
+                            <div class="flex items-center">
+                                <input type="radio" name="q9c" value="false" id="q9c_f" class="mr-3">
+                                <label for="q9c_f">Falso</label>
+                                <input type="radio" name="q9c" value="true" id="q9c_t" class="ml-6 mr-3">
+                                <label for="q9c_t">Verdadeiro</label>
+                            </div>
+                            <p class="ml-6 text-gray-700">Títulos de capítulos devem estar em CAIXA ALTA e em negrito.</p>
+                        </div>
+                    </div>
+
+                    <!-- Questão 10 (antiga 11) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">10. Múltipla Escolha (múltiplas respostas)</h3>
+                        <p class="mb-4">Sobre o resumo do trabalho, é correto afirmar:</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q10" value="a" class="mr-3">
+                                a) Deve ter entre 100 e 500 palavras
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q10" value="b" class="mr-3">
+                                b) Deve ser escrito em terceira pessoa
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q10" value="c" class="mr-3">
+                                c) Pode conter citações
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q10" value="d" class="mr-3">
+                                d) É parte do elemento pós-textual
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Questão 11 (antiga 12) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">11. Completar Lacunas</h3>
+                        <p class="mb-4">As referências devem ser alinhadas à <input type="text" name="q11a" class="mx-2 px-2 py-1 border rounded text-base" placeholder="resposta"> e com espaçamento <input type="text" name="q11b" class="mx-2 px-2 py-1 border rounded text-base" placeholder="resposta"> entre elas.</p>
+                    </div>
+
+                    <!-- Questão 12 (antiga 13) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">12. Pergunta Discursiva</h3>
+                        <p class="mb-4">Explique por que é importante seguir as normas da ABNT em trabalhos acadêmicos, mesmo em cursos técnicos como Enfermagem.</p>
+                        <textarea name="q12" rows="4" class="w-full px-3 py-2 border rounded-lg text-base" placeholder="Digite sua resposta aqui..."></textarea>
+                    </div>
+
+                    <!-- Questão 13 (antiga 14) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">13. Escolha a Alternativa INCORRETA</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="q13" value="a" class="mr-3">
+                                a) O título dos capítulos deve ser numerado.
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="q13" value="b" class="mr-3">
+                                b) As citações diretas longas devem ter espaçamento simples e recuo de 4 cm.
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="q13" value="c" class="mr-3">
+                                c) O corpo do texto pode usar fonte 10 para economizar espaço.
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="q13" value="d" class="mr-3">
+                                d) As referências devem conter: autor, título, edição, local, editora e ano.
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Questão 14 (antiga 15) -->
+                    <div class="question-container bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 text-nursing-dark">14. Marcar Múltiplas Corretas</h3>
+                        <p class="mb-4">Assinale os elementos que pertencem ao corpo do texto (elementos textuais):</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q14" value="a" class="mr-3">
+                                a) Capa
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q14" value="b" class="mr-3">
+                                b) Introdução
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q14" value="c" class="mr-3">
+                                c) Desenvolvimento
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q14" value="d" class="mr-3">
+                                d) Conclusão
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="q14" value="e" class="mr-3">
+                                e) Referências
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="text-center pt-8">
+                        <button type="button" onclick="finishExam()" class="bg-nursing-accent hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg transition duration-300 transform hover:scale-105">
+                            Finalizar Prova
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela 3: Resultados -->
+    <div id="resultsScreen" class="hidden container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="text-center mb-8">
+                    <div class="bg-nursing-accent text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl font-bold text-nursing-dark mb-2">Resultado da Prova</h1>
+                    <div class="bg-nursing-light p-4 rounded-lg">
+                        <p class="text-nursing-dark font-semibold">Participantes: <span id="resultStudents"></span></p>
+                        <p class="text-2xl font-bold text-nursing-primary mt-2">Nota Final: <span id="finalScore"></span></p>
+                    </div>
+                </div>
+
+                <div id="detailedResults" class="space-y-4">
+                    <!-- Resultados detalhados serão inseridos aqui -->
+                </div>
+
+                <div class="text-center mt-8">
+                    <button onclick="sendToWhatsApp()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg transition duration-300 transform hover:scale-105">
+                        📱 Enviar Resultado para WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let students = { student1: '', student2: '' };
+        let examResults = {};
+        let correctAnswers = {
+            q1a: 'false', q1b: 'false', q1c: 'true', q1d: 'true',
+            q2: 'c',
+            q3a: '1,5', q3b: 'times new roman ou arial', q3c: '12',
+            q4: ['b', 'c', 'd'],
+            q5a: 'true', q5b: 'false', q5c: 'true',
+            q6: 'c',
+            q7a: 'b', q7b: 'c', q7c: 'a', q7d: 'b', q7e: 'c',
+            q8a: '3', q8b: '5', q8c: '2', q8d: '1', q8e: '6', q8f: '4',
+            q9a: 'false', q9b: 'true', q9c: 'true',
+            q10: ['a', 'b'],
+            q11a: 'margem esquerda', q11b: 'simples',
+            q12: 'padronização credibilidade facilitar leitura avaliação organização profissionalismo',
+            q13: 'c',
+            q14: ['b', 'c', 'd']
+        };
+
+        let explanations = {
+            1: 'Falso (fonte 12, mas espaçamento 1,5 e não negrito no título); Falso (deve ser 1,5); Verdadeiro; Verdadeiro',
+            2: 'A estrutura básica inclui: Capa, Folha de Rosto, Introdução, Desenvolvimento, Conclusão, Referências',
+            3: 'Espaçamento: 1,5; Fonte: Times New Roman ou Arial; Tamanho: 12',
+            4: 'Elementos pré-textuais: Resumo, Capa, Sumário',
+            5: 'Verdadeiro; Falso (conclusão é elemento textual); Verdadeiro',
+            6: 'Superior e esquerda com 3 cm; inferior e direita com 2 cm',
+            7: 'Introdução: b (textual); Referências: c (pós-textual); Capa: a (pré-textual); Desenvolvimento: b (textual); Anexos: c (pós-textual)',
+            8: 'Ordem: 1-Capa, 2-Folha de Rosto, 3-Sumário, 4-Introdução, 5-Desenvolvimento, 6-Referências',
+            9: 'Falso (deve ser justificado); Verdadeiro; Verdadeiro',
+            10: 'Deve ter entre 100 e 500 palavras; Deve ser escrito em terceira pessoa',
+            11: 'Alinhadas à margem esquerda; espaçamento simples',
+            12: 'Para garantir padronização, credibilidade, facilitar a leitura e avaliação dos trabalhos, e desenvolver organização e profissionalismo',
+            13: 'INCORRETA: O corpo do texto pode usar fonte 10 (deve ser 12)',
+            14: 'Elementos textuais: Introdução, Desenvolvimento, Conclusão'
+        };
+
+        // Detectar tema escuro
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        function startExam() {
+            const student1 = document.getElementById('student1').value.trim();
+            const student2 = document.getElementById('student2').value.trim();
+            
+            if (!student1 || !student2) {
+                showCustomAlert('Por favor, preencha os nomes dos dois participantes.');
+                return;
+            }
+            
+            students.student1 = student1;
+            students.student2 = student2;
+            
+            document.getElementById('examStudents').textContent = `${student1} e ${student2}`;
+            document.getElementById('nameScreen').classList.add('hidden');
+            document.getElementById('examScreen').classList.remove('hidden');
+        }
+
+        function finishExam() {
+            const form = document.getElementById('examForm');
+            const formData = new FormData(form);
+            
+            // Verificar se todas as questões foram respondidas
+            const requiredQuestions = ['q1a', 'q1b', 'q1c', 'q1d', 'q2', 'q3a', 'q3b', 'q3c', 'q5a', 'q5b', 'q5c', 'q6', 'q7a', 'q7b', 'q7c', 'q7d', 'q7e', 'q8a', 'q8b', 'q8c', 'q8d', 'q8e', 'q8f', 'q9a', 'q9b', 'q9c', 'q11a', 'q11b', 'q12', 'q13'];
+            
+            for (let question of requiredQuestions) {
+                if (!formData.get(question)) {
+                    showCustomAlert(`Por favor, responda todas as questões. Questão pendente encontrada.`);
+                    return;
+                }
+            }
+            
+            calculateResults(formData);
+            showResults();
+        }
+
+        function calculateResults(formData) {
+            let score = 0;
+            let totalQuestions = 14;
+            let results = {};
+            
+            // Questão 1 (4 sub-questões)
+            let q1Score = 0;
+            q1Score += formData.get('q1a') === correctAnswers.q1a ? 1 : 0;
+            q1Score += formData.get('q1b') === correctAnswers.q1b ? 1 : 0;
+            q1Score += formData.get('q1c') === correctAnswers.q1c ? 1 : 0;
+            q1Score += formData.get('q1d') === correctAnswers.q1d ? 1 : 0;
+            results[1] = q1Score === 4;
+            if (q1Score === 4) score++;
+            
+            // Questão 2
+            results[2] = formData.get('q2') === correctAnswers.q2;
+            if (results[2]) score++;
+            
+            // Questão 3
+            let q3a = formData.get('q3a').toLowerCase().trim();
+            let q3b = formData.get('q3b').toLowerCase().trim();
+            let q3c = formData.get('q3c').toLowerCase().trim();
+            results[3] = q3a === correctAnswers.q3a && 
+                        (q3b.includes('times') || q3b.includes('arial')) && 
+                        q3c === correctAnswers.q3c;
+            if (results[3]) score++;
+            
+            // Questão 4
+            let q4Answers = formData.getAll('q4');
+            results[4] = arraysEqual(q4Answers.sort(), correctAnswers.q4.sort());
+            if (results[4]) score++;
+            
+            // Questão 5 (antiga 6)
+            let q5Score = 0;
+            q5Score += formData.get('q5a') === correctAnswers.q5a ? 1 : 0;
+            q5Score += formData.get('q5b') === correctAnswers.q5b ? 1 : 0;
+            q5Score += formData.get('q5c') === correctAnswers.q5c ? 1 : 0;
+            results[5] = q5Score === 3;
+            if (q5Score === 3) score++;
+            
+            // Questão 6 (antiga 7)
+            results[6] = formData.get('q6') === correctAnswers.q6;
+            if (results[6]) score++;
+            
+            // Questão 7 (antiga 8)
+            let q7Score = 0;
+            q7Score += formData.get('q7a') === correctAnswers.q7a ? 1 : 0;
+            q7Score += formData.get('q7b') === correctAnswers.q7b ? 1 : 0;
+            q7Score += formData.get('q7c') === correctAnswers.q7c ? 1 : 0;
+            q7Score += formData.get('q7d') === correctAnswers.q7d ? 1 : 0;
+            q7Score += formData.get('q7e') === correctAnswers.q7e ? 1 : 0;
+            results[7] = q7Score === 5;
+            if (q7Score === 5) score++;
+            
+            // Questão 8 (antiga 9)
+            let q8Score = 0;
+            q8Score += formData.get('q8a') === correctAnswers.q8a ? 1 : 0;
+            q8Score += formData.get('q8b') === correctAnswers.q8b ? 1 : 0;
+            q8Score += formData.get('q8c') === correctAnswers.q8c ? 1 : 0;
+            q8Score += formData.get('q8d') === correctAnswers.q8d ? 1 : 0;
+            q8Score += formData.get('q8e') === correctAnswers.q8e ? 1 : 0;
+            q8Score += formData.get('q8f') === correctAnswers.q8f ? 1 : 0;
+            results[8] = q8Score === 6;
+            if (q8Score === 6) score++;
+            
+            // Questão 9 (antiga 10)
+            let q9Score = 0;
+            q9Score += formData.get('q9a') === correctAnswers.q9a ? 1 : 0;
+            q9Score += formData.get('q9b') === correctAnswers.q9b ? 1 : 0;
+            q9Score += formData.get('q9c') === correctAnswers.q9c ? 1 : 0;
+            results[9] = q9Score === 3;
+            if (q9Score === 3) score++;
+            
+            // Questão 10 (antiga 11)
+            let q10Answers = formData.getAll('q10');
+            results[10] = arraysEqual(q10Answers.sort(), correctAnswers.q10.sort());
+            if (results[10]) score++;
+            
+            // Questão 11 (antiga 12)
+            let q11a = formData.get('q11a').toLowerCase().trim();
+            let q11b = formData.get('q11b').toLowerCase().trim();
+            results[11] = q11a.includes('margem') && q11a.includes('esquerda') && q11b === correctAnswers.q11b;
+            if (results[11]) score++;
+            
+            // Questão 12 (antiga 13)
+            let q12Answer = formData.get('q12').toLowerCase();
+            let keywords = ['padronização', 'credibilidade', 'facilitar', 'leitura', 'avaliação', 'organização', 'profissionalismo'];
+            let keywordCount = keywords.filter(keyword => q12Answer.includes(keyword) || q12Answer.includes(keyword.slice(0, -2))).length;
+            results[12] = keywordCount >= 3;
+            if (results[12]) score++;
+            
+            // Questão 13 (antiga 14)
+            results[13] = formData.get('q13') === correctAnswers.q13;
+            if (results[13]) score++;
+            
+            // Questão 14 (antiga 15)
+            let q14Answers = formData.getAll('q14');
+            results[14] = arraysEqual(q14Answers.sort(), correctAnswers.q14.sort());
+            if (results[14]) score++;
+            
+            examResults = {
+                score: score,
+                total: totalQuestions,
+                percentage: Math.round((score / totalQuestions) * 100),
+                details: results
+            };
+        }
+
+        function arraysEqual(a, b) {
+            return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, index) => val === b[index]);
+        }
+
+        function showResults() {
+            document.getElementById('examScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.remove('hidden');
+            
+            document.getElementById('resultStudents').textContent = `${students.student1} e ${students.student2}`;
+            document.getElementById('finalScore').textContent = `${examResults.score}/${examResults.total} (${examResults.percentage}%)`;
+            
+            const detailedResults = document.getElementById('detailedResults');
+            detailedResults.innerHTML = '';
+            
+            for (let i = 1; i <= 14; i++) {
+                const isCorrect = examResults.details[i];
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `p-4 rounded-lg border-l-4 ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`;
+                
+                resultDiv.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        <span class="${isCorrect ? 'text-green-600' : 'text-red-600'} font-bold">
+                            Questão ${i}: ${isCorrect ? '✓ CORRETA' : '✗ INCORRETA'}
+                        </span>
+                    </div>
+                    ${!isCorrect ? `<div class="text-gray-700 text-sm"><strong>Explicação:</strong> ${explanations[i]}</div>` : ''}
+                `;
+                
+                detailedResults.appendChild(resultDiv);
+            }
+        }
+
+        function sendToWhatsApp() {
+            const resultsText = Object.keys(examResults.details).map(q => {
+                return `${q}- ${examResults.details[q] ? 'certo' : 'errado'}`;
+            }).join(', ');
+            
+            const message = `*Resultado da Prova ABNT*\n\n*Alunos:* ${students.student1} e ${students.student2}\n\n*Respostas:* ${resultsText}\n\n*Nota Total:* ${examResults.score}/${examResults.total} (${examResults.percentage}%)`;
+            
+            const phoneNumber = '5584981897143';
+            const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappURL, '_blank');
+        }
+
+        function showCustomAlert(message) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
+                    <div class="flex justify-end">
+                        <button class="px-4 py-2 bg-nursing-primary text-white hover:bg-nursing-dark rounded" onclick="this.closest('.fixed').remove()">OK</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+    </script>
+</body>
+</html>
